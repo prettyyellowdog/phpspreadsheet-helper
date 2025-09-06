@@ -6,7 +6,7 @@ use Exception;
 
 /**
  * PhpSpreadsheet Helper
- * 
+ *
  * @author      Nick Tsai <myintaer@gmail.com>
  * @version     1.4.1
  * @filesource 	PhpSpreadsheet <https://github.com/PHPOffice/PhpSpreadsheet>
@@ -31,7 +31,7 @@ class Helper
      * @var boolean Check whether a time zone has been initialized.
      */
     private static $_isTimezoneInitialized = false;
-    
+
     /**
      * @var object Cached PhpSpreadsheet Sheet object
      */
@@ -87,23 +87,23 @@ class Helper
     private static $_writerTypeInfo = [
         'Ods' => [
             'extension' => '.ods',
-            'contentType' => 'application/vnd.oasis.opendocument.spreadsheet'
+            'contentType' => 'application/vnd.oasis.opendocument.spreadsheet',
         ],
         'Xls' => [
             'extension' => '.xls',
-            'contentType' => 'application/vnd.ms-excel'
+            'contentType' => 'application/vnd.ms-excel',
         ],
         'Xlsx' => [
             'extension' => '.xlsx',
-            'contentType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            'contentType' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         ],
         'Html' => [
             'extension' => '.html',
-            'contentType' => 'text/html'
+            'contentType' => 'text/html',
         ],
         'Csv' => [
             'extension' => '.csv',
-            'contentType' => 'text/csv'
+            'contentType' => 'text/csv',
         ],
     ];
 
@@ -114,39 +114,38 @@ class Helper
      */
     private static $_invalidCharacters = ['*', ':', '/', '\\', '?', '[', ']'];
 
-    /** 
+    /**
      * New or load an PhpSpreadsheet object
-     * 
+     *
      * @param object|string $phpSpreadsheet PhpSpreadsheet object or filepath
      * @return self
      */
-    public static function newSpreadsheet($phpSpreadsheet=NULL)
+    public static function newSpreadsheet($phpSpreadsheet=null)
     {
         if (is_object($phpSpreadsheet)) {
-            
+
             self::$_objSpreadsheet = &$phpSpreadsheet;
-        } 
-        elseif (is_string($phpSpreadsheet)) {
+        } elseif (is_string($phpSpreadsheet)) {
 
             self::$_objSpreadsheet = \PhpOffice\PhpSpreadsheet\IOFactory::load($phpSpreadsheet);
-        }
-        else {
+        } else {
             self::$_objSpreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
         }
 
         # Timezone initialization or check
         self::setTimezone();
-        
+
         return self::resetSheet();
     }
 
     /**
      * Set the timezone for spreadsheet environment
-     * 
+     *
      * @param string
      * @return boolean
      */
-    public static function setTimezone($timezoneString=null) {
+    public static function setTimezone($timezoneString=null)
+    {
 
         # No timezone was given, but a custom timezone is already set
         if (!$timezoneString && self::$_isTimezoneInitialized) {
@@ -156,83 +155,81 @@ class Helper
         # Initial call to set the timezone based on the PHP default timezone
         $targetTimezoneString = ($timezoneString) ? $timezoneString : date_default_timezone_get();
         self::$_isTimezoneInitialized = true;
-        
+
         return \PhpOffice\PhpSpreadsheet\Shared\Date::setDefaultTimezone($targetTimezoneString);
     }
 
     /**
      * Get the timezone from spreadsheet environment
-     * 
+     *
      * @return string
      */
-    public static function getTimezone() {
+    public static function getTimezone()
+    {
 
         return \PhpOffice\PhpSpreadsheet\Shared\Date::getDefaultTimezone()->getName();
     }
 
-    /** 
+    /**
      * Get PhpSpreadsheet object from cache
-     * 
+     *
      * @return object PhpSpreadsheet object
      */
     public static function getSpreadsheet()
     {
         return self::$_objSpreadsheet;
     }
-    
-    /** 
+
+    /**
      * Reset cached PhpSpreadsheet sheet object and helper data
-     * 
+     *
      * @return self
      */
     public static function resetSheet()
     {
-        self::$_objSheet = NULL;
+        self::$_objSheet = null;
         self::$_offsetRow = 0;
         self::$_offsetCol = 0; // A1 => 1
 
         return new static();
     }
 
-    /** 
+    /**
      * Set an active PhpSpreadsheet Sheet
-     * 
+     *
      * @param object|int $sheet PhpSpreadsheet sheet object or index number
      * @param string $title Sheet title
-     * @param bool $normalizeTitle Auto-normalize title rule 
+     * @param bool $normalizeTitle Auto-normalize title rule
      * @return self
      */
-    public static function setSheet($sheet=0, $title=NULL, $normalizeTitle=false)
+    public static function setSheet($sheet=0, $title=null, $normalizeTitle=false)
     {
         self::resetSheet();
 
         if (is_object($sheet)) {
-            
+
             self::$_objSheet = &$sheet;
-        } 
-        elseif (is_numeric($sheet) && $sheet>=0 && self::$_objSpreadsheet) {
+        } elseif (is_numeric($sheet) && $sheet>=0 && self::$_objSpreadsheet) {
 
             /* Sheets Check */
             $sheetCount = self::$_objSpreadsheet->getSheetCount();
             if ($sheet >= $sheetCount) {
-                for ($i=$sheetCount; $i <= $sheet; $i++) { 
+                for ($i=$sheetCount; $i <= $sheet; $i++) {
                     self::$_objSpreadsheet->createSheet($i);
                 }
             }
             // Select sheet
             self::$_objSheet = self::$_objSpreadsheet->setActiveSheetIndex($sheet);
-        }
-        elseif (is_null($sheet) && self::$_objSpreadsheet) {
+        } elseif (is_null($sheet) && self::$_objSpreadsheet) {
             // Auto create a sheet without index
             self::setSheet(self::getSheetCount());
-        }
-        else {
-            throw new Exception("Invalid or empty PhpSpreadsheet Object for setting sheet", 400);
+        } else {
+            throw new Exception('Invalid or empty PhpSpreadsheet Object for setting sheet', 400);
         }
 
         // Sheet Title
         if ($title) {
-            // Auto-normalize title rule 
+            // Auto-normalize title rule
             if ($normalizeTitle) {
                 /**
                  * @see PhpOffice\PhpSpreadsheet\Worksheet\Worksheet
@@ -249,24 +246,24 @@ class Helper
         return new static();
     }
 
-    /** 
+    /**
      * Get PhpSpreadsheet Sheet object from cache
-     * 
+     *
      * @param int|string $identity Sheet index or name
-     * @param bool $autoCreate 
+     * @param bool $autoCreate
      * @return object PhpSpreadsheet Sheet object
      */
     public static function getSheet($identity=null, $autoCreate=false)
     {
         // Deafult is get active sheet
         if (!$identity) {
-            
+
             return self::$_objSheet;
         }
 
         // Giving $identity situation
         if (is_numeric($identity)) {
-            
+
             $objSheet = self::$_objSpreadsheet->getSheet($identity);
             // Auto create if not exist
             if (!$objSheet && $autoCreate) {
@@ -274,9 +271,8 @@ class Helper
                 $objSheet = self::setSheet($identity)
                     ->getSheet();
             }
-        }
-        elseif (is_string($identity)) {
-            
+        } elseif (is_string($identity)) {
+
             $objSheet = self::$_objSpreadsheet->getSheetByName($identity);
             // Auto create if not exist
             if (!$objSheet && $autoCreate) {
@@ -301,7 +297,7 @@ class Helper
 
     /**
      * Get active sheet index
-     * 
+     *
      * @return int Index of active sheet
      */
     public static function getActiveSheetIndex()
@@ -309,22 +305,22 @@ class Helper
         return self::$_objSpreadsheet->getActiveSheetIndex();
     }
 
-    /** 
+    /**
      * Set the offset of rows for the actived PhpSpreadsheet Sheet
-     * 
+     *
      * @param int $var The offset number
      * @return self
      */
     public static function setRowOffset($var=0)
     {
         self::$_offsetRow = (int)$var;
-        
+
         return new static();
     }
 
-    /** 
+    /**
      * Get the offset of rows for the actived PhpSpreadsheet Sheet
-     * 
+     *
      * @return int The offset number
      */
     public static function getRowOffset()
@@ -332,24 +328,24 @@ class Helper
         return self::$_offsetRow;
     }
 
-    /** 
+    /**
      * Set the offset of columns for the actived PhpSpreadsheet Sheet
-     * 
+     *
      * @param int $var The offset number
      * @return self
      */
     public static function setColumnOffset($var=0)
     {
         self::$_offsetCol = (int)$var;
-        
+
         return new static();
     }
 
     /**
      * Add a row to the actived sheet of PhpSpreadsheet
-     * 
-     * @param array $rowData 
-     *  @param mixed|array Cell value | Cell attributes 
+     *
+     * @param array $rowData
+     *  @param mixed|array Cell value | Cell attributes
      *   Cell attributes key-value:
      *   @param string|int 'key' Cell key for index
      *   @param mixed 'value' Cell value
@@ -364,15 +360,15 @@ class Helper
     public static function addRow($rowData, $rowAttributes=null)
     {
         $sheetObj = self::validSheetObj();
-        
+
         // Column pointer
         $posCol = self::$_offsetCol + 1;
 
         // Next row
         self::$_offsetRow++;
-        
+
         foreach ($rowData as $key => $cell) {
-            
+
             // Attribute defining Cell
             if (is_array($cell) || is_array($rowAttributes)) {
 
@@ -392,8 +388,8 @@ class Helper
 
                 // Row attributes inheriting process (Based on default value of map)
                 foreach ($attributeMap as $aKey => $mapVal) {
-                
-                    ${$aKey} = isset($rowAttributes[$aKey]) ? $rowAttributes[$aKey] : $mapVal;
+
+                    ${$aKey} = $rowAttributes[$aKey] ?? $mapVal;
                 }
 
                 // Cell Process
@@ -401,10 +397,10 @@ class Helper
 
                     // Cell attributes process (Based on row attributes)
                     foreach ($attributeMap as $aKey => $mapVal) {
-                    
-                        ${$aKey} = isset($cell[$aKey]) ? $cell[$aKey] : ${$aKey};
+
+                        ${$aKey} = $cell[$aKey] ?? ${$aKey};
                     }
-                    
+
                 } else {
                     // Override value attribute
                     $value = $cell;
@@ -414,17 +410,17 @@ class Helper
                 $colAlpha = self::num2alpha($posCol);
 
                 // Set value
-                $sheetObj->setCellValueByColumnAndRow($posCol, self::$_offsetRow, $value);
+                $sheetObj->setCellValue([$posCol, self::$_offsetRow], $value);
 
                 // Setting the column's width
                 if ($width) {
-                    
+
                     $sheetObj->getColumnDimension($colAlpha)->setWidth($width);
                 }
 
                 // Setting applyFromArray
                 if ($style) {
-                    
+
                     $sheetObj->getStyle($colAlpha.self::$_offsetRow)
                         ->applyFromArray($style);
                 }
@@ -453,13 +449,11 @@ class Helper
                         // Reset column coordinate
                         $startColumn = self::num2alpha($posColLast);
                         $startCoordinate = $startColumn. self::$_offsetRow;
-                    } 
-                    elseif ($skip > 1) {
+                    } elseif ($skip > 1) {
                         self::$_keyRangeMap[$key] = $startCoordinate
                             . ':'
                             . self::num2alpha($posCol+($skip-1)) . self::$_offsetRow;
-                    } 
-                    else {
+                    } else {
                         self::$_keyRangeMap[$key] = "{$startCoordinate}:{$startCoordinate}";
                     }
                     // Coordinate & col-row Map
@@ -473,8 +467,8 @@ class Helper
 
             } else {
 
-                $sheetObj->setCellValueByColumnAndRow($posCol, self::$_offsetRow, $cell);
-                
+                $sheetObj->setCellValue([$posCol, self::$_offsetRow], $cell);
+
                 $posCol++;
             }
         }
@@ -484,14 +478,14 @@ class Helper
 
     /**
      * Add rows to the actived sheet of PhpSpreadsheet
-     * 
+     *
      * @param array array of rowData for addRow()
      * @param array Row attributes refers to cell attributes
      * @return self
      */
     public static function addRows($data, $rowAttributes=null)
     {
-         foreach ($data as $key => $row) {
+        foreach ($data as $key => $row) {
 
             self::addRow($row, $rowAttributes);
         }
@@ -499,9 +493,9 @@ class Helper
         return new static();
     }
 
-    /** 
+    /**
      * Output file to browser
-     * 
+     *
      * @param string $filename
      * @param string $format
      */
@@ -517,8 +511,8 @@ class Helper
          */
         $inTypeList = isset(self::$_writerTypeInfo[$format]) ? true : false;
         $extension = ($inTypeList) ? self::$_writerTypeInfo[$format]['extension'] : '';
-        $contentType = ($inTypeList) 
-            ? self::$_writerTypeInfo[$format]['contentType'] 
+        $contentType = ($inTypeList)
+            ? self::$_writerTypeInfo[$format]['contentType']
             : 'application/octet-stream';
 
         // Redirect output to a client's web browser
@@ -528,15 +522,15 @@ class Helper
          */
         $filename = rawurlencode($filename);
         header("Content-Disposition: attachment; filename={$filename}{$extension}; filename*=UTF-8''{$filename}{$extension};");
-        header("Cache-Control: max-age=0");
+        header('Cache-Control: max-age=0');
 
         $objWriter->save('php://output');
         exit;
     }
 
-    /** 
+    /**
      * Save as file
-     * 
+     *
      * @param string $filename Support file path
      * @param string $format
      * @return string Filepath
@@ -553,10 +547,10 @@ class Helper
          */
         $inTypeList = isset(self::$_writerTypeInfo[$format]) ? true : false;
         $extension = ($inTypeList) ? self::$_writerTypeInfo[$format]['extension'] : '';
-        
+
         // Check if filename contained extension
         $filepath = (stripos($filename, $extension)===(strlen($filename)-strlen($extension)))
-            ? $filename 
+            ? $filename
             : "{$filename}{$extension}";
 
         // Save file
@@ -566,7 +560,7 @@ class Helper
 
     /**
      * Get data of a row from the actived sheet of PhpSpreadsheet
-     * 
+     *
      * @param bool $toString All values from sheet to be string type
      * @param bool $options [
      *  row (int) Ended row number
@@ -584,7 +578,7 @@ class Helper
         // Options
         $defaultOptions = [
             'columnOffset' => 0,
-            'columns' => NULL,
+            'columns' => null,
             'timestamp' => true,
             'timestampFormat' => 'Y-m-d H:i:s', // False would use Unixtime
         ];
@@ -605,13 +599,13 @@ class Helper
         // Fetch data from the sheet
         $data = [];
         for ($col = $startColumn + 1; $col <= $columns; ++$col) {
-            $cell = $worksheet->getCellByColumnAndRow($col, self::$_offsetRow);
+            $cell = $worksheet->getCell([$col, self::$_offsetRow]);
             $value = $cell->getValue();
             // Timestamp option
             if ($options['timestamp'] && \PhpOffice\PhpSpreadsheet\Shared\Date::isDateTime($cell)) {
                 $value = \PhpOffice\PhpSpreadsheet\Shared\Date::excelToTimestamp($value);
                 // Timestamp Format option
-                $value = ($options['timestampFormat']) 
+                $value = ($options['timestampFormat'])
                     ? date($options['timestampFormat'], $value) : $value;
             }
             $value = ($toString) ? (string)$value : $value;
@@ -627,7 +621,7 @@ class Helper
 
     /**
      * Get rows from the actived sheet of PhpSpreadsheet
-     * 
+     *
      * @param bool $toString All values from sheet to be string type
      * @param bool $options [
      *  row (int) Ended row number
@@ -638,15 +632,15 @@ class Helper
      * @param callable $callback($cellValue, int $columnIndex, int $rowIndex)
      * @return array Data of Spreadsheet
      */
-    public static function getRows($toString=true, Array $options=[], callable $callback=null)
+    public static function getRows($toString=true, array $options=[], callable $callback=null)
     {
         $worksheet = self::validSheetObj();
 
         // Options
         $defaultOptions = [
             'rowOffset' => 0,
-            'rows' => NULL,
-            'columns' => NULL,
+            'rows' => null,
+            'columns' => null,
             'timestamp' => true,
             'timestampFormat' => 'Y-m-d H:i:s', // False would use Unixtime
         ];
@@ -654,10 +648,10 @@ class Helper
 
         // Get the highest row and column numbers referenced in the worksheet
         $highestRow = $worksheet->getHighestRow();
-        $rowOffset = ($options['rowOffset'] && $options['rowOffset'] <= $highestRow) 
-            ? $options['rowOffset'] 
+        $rowOffset = ($options['rowOffset'] && $options['rowOffset'] <= $highestRow)
+            ? $options['rowOffset']
             : 0;
-        $rows = ($options['rows'] && ($rowOffset+$options['rows']) < $highestRow) 
+        $rows = ($options['rows'] && ($rowOffset+$options['rows']) < $highestRow)
             ? $options['rows']
             : $highestRow - $rowOffset;
         // Enhance performance for each getRow()
@@ -669,8 +663,8 @@ class Helper
         // Fetch data from the sheet
         $data = [];
         $pointerRow = &$data;
-        for ($i=1; $i <= $rows ; $i++) { 
-            
+        for ($i=1; $i <= $rows ; $i++) {
+
             $pointerRow[] = self::getRow($toString, $options, $callback);
         }
 
@@ -679,14 +673,14 @@ class Helper
 
     /**
      * Get Coordinate Map by key or all from the actived sheet
-     * 
+     *
      * @param string|int $key Key set by addRow()
      * @return string|array Coordinate string | Key-Coordinate array
      */
-    public static function getCoordinateMap($key=NULL)
+    public static function getCoordinateMap($key=null)
     {
         if ($key) {
-            return isset(self::$_keyCoordinateMap[$key]) ? self::$_keyCoordinateMap[$key] : NULL;
+            return self::$_keyCoordinateMap[$key] ?? null;
         } else {
             return self::$_keyCoordinateMap;
         }
@@ -694,14 +688,14 @@ class Helper
 
     /**
      * Get Column Alpha Map by key or all from the actived sheet
-     * 
+     *
      * @param string|int $key Key set by addRow()
      * @return string|array Column alpha string | Key-Coordinate array
      */
-    public static function getColumnMap($key=NULL)
+    public static function getColumnMap($key=null)
     {
         if ($key) {
-            return isset(self::$_keyColumnMap[$key]) ? self::$_keyColumnMap[$key] : NULL;
+            return self::$_keyColumnMap[$key] ?? null;
         } else {
             return self::$_keyColumnMap;
         }
@@ -709,14 +703,14 @@ class Helper
 
     /**
      * Get Row Number Map by key or all from the actived sheet
-     * 
+     *
      * @param string|int $key Key set by addRow()
      * @return int|array Row number | Key-Coordinate array
      */
-    public static function getRowMap($key=NULL)
+    public static function getRowMap($key=null)
     {
         if ($key) {
-            return isset(self::$_keyRowMap[$key]) ? self::$_keyRowMap[$key] : NULL;
+            return self::$_keyRowMap[$key] ?? null;
         } else {
             return self::$_keyRowMap;
         }
@@ -724,14 +718,14 @@ class Helper
 
     /**
      * Get Range Map by key or all from the actived sheet
-     * 
+     *
      * @param string|int $key Key set by addRow()
      * @return string|array Range string | Key-Range array
      */
-    public static function getRangeMap($key=NULL)
+    public static function getRangeMap($key=null)
     {
         if ($key) {
-            return isset(self::$_keyRangeMap[$key]) ? self::$_keyRangeMap[$key] : NULL;
+            return self::$_keyRangeMap[$key] ?? null;
         } else {
             return self::$_keyRangeMap;
         }
@@ -739,24 +733,24 @@ class Helper
 
     /**
      * Get Range of all actived cells from the actived sheet
-     * 
+     *
      * @return string Range string
      */
     public static function getRangeAll()
     {
         $sheetObj = self::validSheetObj();
-        
+
         return self::num2alpha(self::$_offsetCol+1). '1:'. $sheetObj->getHighestColumn(). $sheetObj->getHighestRow();
     }
 
     /**
      * Set WrapText for all actived cells or set by giving range to the actived sheet
-     * 
+     *
      * @param string $range Cells range format
      * @param bool $value PhpSpreadsheet setWrapText() argument
      * @return self
      */
-    public static function setWrapText($range=NULL, $value=true)
+    public static function setWrapText($range=null, $value=true)
     {
         $sheetObj = self::validSheetObj();
 
@@ -764,19 +758,19 @@ class Helper
 
         $sheetObj->getStyle($range)
             ->getAlignment()
-            ->setWrapText($value); 
-        
+            ->setWrapText($value);
+
         return new static();
     }
 
     /**
      * Set Style for all actived cells or set by giving range to the actived sheet
-     * 
+     *
      * @param array Array containing style information for applyFromArray()
      * @param string $range Cells range format
      * @return self
      */
-    public static function setStyle($styleArray, $range=NULL)
+    public static function setStyle($styleArray, $range=null)
     {
         $sheetObj = self::validSheetObj();
 
@@ -784,28 +778,28 @@ class Helper
 
         $sheetObj->getStyle($range)
             ->applyFromArray($styleArray);
-        
+
         return new static();
     }
 
     /**
      * Set AutoSize for all actived cells or set by giving column range to the actived sheet
-     * 
+     *
      * @param string $colAlphaStart Column Alpah of start
      * @param string $colAlphaEnd Column Alpah of end
      * @param bool $value PhpSpreadsheet AutoSize() argument
      * @return self
      */
-    public static function setAutoSize($colAlphaStart=NULL, $colAlphaEnd=NULL, $value=true)
+    public static function setAutoSize($colAlphaStart=null, $colAlphaEnd=null, $value=true)
     {
         $sheetObj = self::validSheetObj();
 
         $colStart = ($colAlphaStart) ? self::alpha2num($colAlphaStart) : self::$_offsetCol + 1;
-        $colEnd = ($colAlphaEnd) 
-            ? self::alpha2num($colAlphaEnd) 
+        $colEnd = ($colAlphaEnd)
+            ? self::alpha2num($colAlphaEnd)
             : self::alpha2num($sheetObj->getHighestColumn());
 
-        foreach (range($colStart,$colEnd ) as $key => $colNum) {
+        foreach (range($colStart, $colEnd) as $key => $colNum) {
             $sheetObj->getColumnDimension(self::num2alpha($colNum))->setAutoSize($value);
         }
 
@@ -814,9 +808,9 @@ class Helper
 
     /**
      * Number to Alpha
-     * 
+     *
      * Optimizing from \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex()
-     * 
+     *
      * @example
      *  1 => A, 27 => AA
      * @param int $n column number
@@ -835,11 +829,11 @@ class Helper
 
     /**
      * Alpha to Number
-     * 
+     *
      * Optimizing from \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString()
-     * 
+     *
      * @example
-     *  A => 1, AA => 27 
+     *  A => 1, AA => 27
      * @param int $n Excel column alpha
      * @return string column number
      */
@@ -855,50 +849,45 @@ class Helper
 
     /**
      * Validate and return the selected PhpSpreadsheet Object
-     * 
+     *
      * @param object $excelObj PhpSpreadsheet Object
      * @return object Cached object or given object
      */
-    private static function validExcelObj($excelObj=NULL)
+    private static function validExcelObj($excelObj=null)
     {
         if (is_object($excelObj)) {
 
             return $excelObj;
-        } 
-        elseif (is_object(self::$_objSpreadsheet)) {
+        } elseif (is_object(self::$_objSpreadsheet)) {
 
             return self::$_objSpreadsheet;
-        } 
-        else {
-            
-            throw new Exception("Invalid or empty PhpSpreadsheet Object", 400);
+        } else {
+
+            throw new Exception('Invalid or empty PhpSpreadsheet Object', 400);
         }
     }
 
     /**
      * Validate and return the selected PhpSpreadsheet Sheet Object
-     * 
+     *
      * @param object $excelObj PhpSpreadsheet Sheet Object
      * @return object Cached object or given object
      */
-    private static function validSheetObj($sheetObj=NULL)
+    private static function validSheetObj($sheetObj=null)
     {
         if (is_object($sheetObj)) {
 
             return $sheetObj;
-        } 
-        elseif (is_object(self::$_objSheet)) {
+        } elseif (is_object(self::$_objSheet)) {
 
             return self::$_objSheet;
-        } 
-        elseif (is_object(self::$_objSpreadsheet)) {
+        } elseif (is_object(self::$_objSpreadsheet)) {
 
             // Set to default sheet if is unset
             return self::setSheet()->getSheet();
-        }
-        else {
-            
-            throw new Exception("Invalid or empty PhpSpreadsheet Sheet Object", 400);
+        } else {
+
+            throw new Exception('Invalid or empty PhpSpreadsheet Sheet Object', 400);
         }
     }
 }
